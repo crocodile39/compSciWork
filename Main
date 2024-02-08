@@ -1,0 +1,64 @@
+var championsList = getColumn("FIFA Men's World Cup Results", "Champions");
+var yearsList = getColumn("FIFA Men's World Cup Results", "Year");
+var runnerUpList = getColumn("FIFA Men's World Cup Results", "Runners-up");
+var chosenChampionYearsList = [];
+var chosenRunnerUpsList = [];
+
+var chosenChampion = "Uruguay";
+var chosenYear = 1930;
+var chosenRunnerUp = "Argentina";
+
+UpdateYearsList();
+
+onEvent("CountryDropdown", "change", function( )
+{
+  chosenChampion = getText("CountryDropdown");
+  chosenChampionYearsList = [];
+  UpdateYearsList();
+});
+
+function UpdateYearsList()
+{
+  for(var i = 0; i < championsList.length; i++)
+  {
+    if(championsList[i] == chosenChampion)
+    {
+      appendItem(chosenChampionYearsList, yearsList[i]);
+      appendItem(chosenRunnerUpsList, runnerUpList[i]);
+    }
+  }
+}
+
+onEvent("GoButtonOne", "click", function( )
+{
+    if(chosenChampionYearsList.length > 1)
+    {
+      setScreen("PickYearScreen");
+      setProperty("YearDropdown", "options", chosenChampionYearsList);
+      GetRunnerUp();
+    }
+    else
+    {
+      setScreen("WinScreen");
+    }
+});
+
+onEvent("YearDropdown", "change", function( )
+{
+  GetRunnerUp();
+});
+
+function GetRunnerUp()
+{
+  chosenYear = getProperty("YearDropdown", "value");
+  for(var i = 0; i < yearsList.length; i++)
+  {
+    var comparison = yearsList[i] + "";
+   
+    if(comparison == chosenYear)
+    {
+      chosenRunnerUp = runnerUpList[i];
+    }
+  }
+}
+
