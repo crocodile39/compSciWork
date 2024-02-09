@@ -8,8 +8,21 @@ var chosenChampion = "Uruguay";
 var chosenYear = 1930;
 var chosenRunnerUp = "Argentina";
 
+var userScore = 0;
+var userMisses = 0;
+var enemyScore = 0;
+var enemyMisses = 0;
+var round = 0;
+
+var shooting = true;
+var userPick = 0;
+var enemyPick = 0;
+
+var mustClickNextRound = false;
+
 UpdateYearsList();
 
+//Allows the user to choose a country that has won the world cup, sets the chosenChampionYearsList to an empty array, then calls the UpdateYearsList function.
 onEvent("CountryDropdown", "change", function( )
 {
   chosenChampion = getText("CountryDropdown");
@@ -17,6 +30,7 @@ onEvent("CountryDropdown", "change", function( )
   UpdateYearsList();
 });
 
+//Uses a for loop to iterate through the championsList and compares each element to the chosen country, if they are the same then it means that index is a year that country won the world cup, so it adds the year to the chosenChampionYearsList, and the runner up of that year to chosenRunnerUpsList. 
 function UpdateYearsList()
 {
   for(var i = 0; i < championsList.length; i++)
@@ -29,6 +43,7 @@ function UpdateYearsList()
   }
 }
 
+//Checks if the country selected has won multiple world cups, if so set screen to the PickYearScreen, updates the options on that screen, and calls the GetRunnerUp Function. Otherwise it sets the screen to WinScreen.
 onEvent("GoButtonOne", "click", function( )
 {
     if(chosenChampionYearsList.length > 1)
@@ -43,11 +58,13 @@ onEvent("GoButtonOne", "click", function( )
     }
 });
 
+//If the YearDropdown is changed, this will call the GetRunnerUp function
 onEvent("YearDropdown", "change", function( )
 {
   GetRunnerUp();
 });
 
+//Gets the chosen year in the dropdown, then uses a for loop to iterate through the list of world cup years, and if the year at the index is the same as the selected year, it sets chosenRunnerUp to that years runner up.
 function GetRunnerUp()
 {
   chosenYear = getProperty("YearDropdown", "value");
@@ -58,7 +75,259 @@ function GetRunnerUp()
     if(comparison == chosenYear)
     {
       chosenRunnerUp = runnerUpList[i];
+      return;
     }
   }
 }
 
+//Sends the user back to HomeScreen and calls ResetApp function
+onEvent("HomeButton1", "click", function( ) 
+{
+  setScreen("HomeScreen");
+  ResetApp();
+});
+
+//Sends the user back to HomeScreen and calls ResetApp function
+onEvent("HomeButton2", "click", function( ) 
+{
+  setScreen("HomeScreen");
+  ResetApp();
+});
+
+//Sends the user back to HomeScreen and calls ResetApp function
+onEvent("HomeButton3", "click", function( ) 
+{
+  setScreen("HomeScreen");
+  ResetApp();
+});
+
+function ResetApp()
+{
+   userScore = 0;
+   userMisses = 0;
+   enemyScore = 0;
+   enemyMisses = 0;
+   round = 0;
+   shooting = true;
+}
+
+
+//Sets the screen to GameScreen, and updates the UserTeamLabel and EnemyTeamLabel
+onEvent("GoButton2", "click", function( ) 
+{
+  setScreen("GameScreen");
+  setProperty("UserTeamLabel", "text", chosenChampion);
+  setProperty("EnemyTeamLabel", "text", chosenRunnerUp);
+});
+
+//Sets the screen to PlayScreen, and calls the UpdateGameScreen and ResetPenalty function.
+onEvent("PlayButton", "click", function( ) 
+{
+  setScreen("PlayScreen");
+  UpdateGameScreen();
+  ResetPenalty();
+});
+
+//If the left button is clicked set the users decision to 0, and call the DoPenalty function
+onEvent("LeftButton", "click", function( ) 
+{
+  if(!mustClickNextRound)
+  {
+     userPick = 0;
+     DoPenalty();
+  }
+});
+
+//If the middle button is clicked set the users decision to 1, and call the DoPenalty function
+onEvent("MiddleButton", "click", function( ) 
+{
+ if(!mustClickNextRound)
+  {
+    userPick = 1;
+    DoPenalty();
+  }
+});
+
+//If the right button is clicked set the users decision to 2, and call the DoPenalty function
+onEvent("RightButton", "click", function( ) 
+{
+  if(!mustClickNextRound)
+  {
+    userPick = 2;
+    DoPenalty();
+  }
+});
+
+//Sets the UserTeamScore label to "chosen country: userScore", and the EnemyTeamScore label to "chosen runner up: enemyScore"
+function UpdateGameScreen()
+{
+  setProperty("UserTeamScore", "text", chosenChampion + ": " + userScore);
+  setProperty("EnemyTeamScore", "text", chosenRunnerUp + ": " + enemyScore);
+}
+
+//Generates a random decision/side for the enemy. Then, based on the decision of the player and enemy moves the goalie and ball to respective places(ex. user chooses left(0) and is shooting, the ball will be moved to the left side of the goal). Then based on if the user and enemy choose the same side, the shooter will either gain a point or not.
+//Next, the shooting variable is set to the opposite of what it is currently, calls the UpdateGameScreen function, sets mustClickNextRound to true, and sets the NextRoundButton to not hidden
+function DoPenalty()
+{
+  enemyPick = randomNumber(0,2);
+  if(shooting)
+  {
+    switch(userPick)
+    {
+      case 0:
+        setProperty("SoccerBall", "x", 55);
+        setProperty("SoccerBall", "y", 155);
+        break;
+      case 1:
+        setProperty("SoccerBall", "x", 140);
+        setProperty("SoccerBall", "y", 155);
+        break;
+      case 2:
+        setProperty("SoccerBall", "x", 260);
+        setProperty("SoccerBall", "y", 155);
+        break;
+    }
+    setProperty("SoccerBall", "width", 30);
+    setProperty("SoccerBall", "height", 30);
+    switch(enemyPick)
+    {
+      case 0:
+        setProperty("Goalie", "x", 15);
+        break;
+      case 2:
+        setProperty("Goalie", "x", 210);
+        break;
+    }
+  }
+  else
+  {
+    switch(enemyPick)
+    {
+      case 0:
+        setProperty("SoccerBall", "x", 55);
+        setProperty("SoccerBall", "y", 155);
+        break;
+      case 1:
+        setProperty("SoccerBall", "x", 140);
+        setProperty("SoccerBall", "y", 155);
+        break;
+      case 2:
+        setProperty("SoccerBall", "x", 260);
+        setProperty("SoccerBall", "y", 155);
+        break;
+    }
+    setProperty("SoccerBall", "width", 30);
+    setProperty("SoccerBall", "height", 30);
+    switch(userPick)
+    {
+      case 0:
+        setProperty("Goalie", "x", 15);
+        break;
+      case 2:
+        setProperty("Goalie", "x", 210);
+        break;
+    }
+  }
+  
+  if(shooting)
+  {
+    if(enemyPick != userPick)
+    {
+      userScore++;
+    }
+    else
+    {
+      userMisses++;
+    }
+  }
+  else
+  {
+    if(enemyPick != userPick)
+    {
+      enemyScore++;
+    }
+    else
+    {
+      enemyMisses++;
+    }
+    round++;
+  }
+  shooting = !shooting;
+  UpdateGameScreen();
+  mustClickNextRound = true;
+  setProperty("NextRoundButton", "hidden", false);
+  
+}
+
+//Sets mustClickNextRound to false, sets the NextRoundButton to hidden, calls ResetPenalty, calls CheckForWinners and sets the hint text based on if the player is shooting or not
+onEvent("NextRoundButton", "click", function( )
+{
+  mustClickNextRound = false;
+  setProperty("NextRoundButton", "hidden", true);
+  ResetPenalty();
+  CheckForWinners();
+  setProperty("HintText", "text", (shooting ? "Click anywhere on the goal to shoot" : "Click anywhere on the goal to save"));
+  
+});
+
+//Sets the goalie and ball to their original positions and scale. Changes the ball and goalie color based on if the player is shooting or not
+function ResetPenalty()
+{
+  setProperty("Goalie", "x", 95);
+  setProperty("Goalie", "y", 125);
+  setProperty("SoccerBall", "x", 120);
+  setProperty("SoccerBall", "y", 275);
+  setProperty("SoccerBall", "width", 75);
+  setProperty("SoccerBall", "height", 75);
+  var red = rgb(255, 0, 0, 1);
+  var blue = rgb(0, 0, 255, 1);
+  setProperty("SoccerBall", "icon-color", shooting ? blue : red);
+  setProperty("Goalie", "icon-color", shooting ? red : blue);
+}
+
+//Determines if user won or lost. This is done by checking if they are within the first five penalties or not. If they are then the equation team1goals + team2misses can be used to determine if a team has won. If they are not in the first five rounds then it checks if one has missed and the other has scored, and if so the scorer has won.
+//Based on if the user won or not, it will set them to WinScreen Or LoseScreen. if there is not winner yet, nothing happens.
+function CheckForWinners()
+{
+  if(round < 5)
+  {
+    if(userScore + enemyMisses >= 6)
+    {
+      setScreen("WinScreen");
+      UpdateVictoryScreen();
+    }
+    else if(enemyScore + userMisses >= 6)
+    {
+      setScreen("LoseScreen");
+      UpdateLossScreen();
+    }
+  }
+  else
+  {
+    if(userScore + userMisses == enemyScore + enemyMisses)
+    {
+      if(userScore > enemyScore)
+      {
+        setScreen("WinScreen");
+        UpdateVictoryScreen();
+      }
+      else if(enemyScore > userScore)
+      {
+        setScreen("LoseScreen");
+        UpdateLossScreen();
+      }
+    }
+  }
+}
+
+//Sets the FinalScoreDisplay1 to the users country and their score, then the enemy country and their score
+function UpdateVictoryScreen()
+{
+  setProperty("FinalScoreDisplay1", "text", chosenChampion + ": " + userScore + " | " + chosenRunnerUp + ": " + enemyScore);
+}
+
+//Sets the FinalScoreDisplay2 to the users country and their score, then the enemy country and their score
+function UpdateLossScreen()
+{
+  setProperty("FinalScoreDisplay2", "text", chosenChampion + ": " + userScore + " | " + chosenRunnerUp + ": " + enemyScore);
+}
