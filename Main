@@ -1,12 +1,16 @@
 var championsList = getColumn("FIFA Men's World Cup Results", "Champions");
 var yearsList = getColumn("FIFA Men's World Cup Results", "Year");
 var runnerUpList = getColumn("FIFA Men's World Cup Results", "Runners-up");
+var hostList = getColumn("FIFA Men's World Cup Results", "Hosts");
+var scoresList = getColumn("FIFA Men's World Cup Results", "Final score");
 var chosenChampionYearsList = [];
 var chosenRunnerUpsList = [];
 
 var chosenChampion = "Uruguay";
 var chosenYear = 1930;
 var chosenRunnerUp = "Argentina";
+var chosenHost = "Uruguay";
+var chosenScore = "4–2";
 
 var userScore = 0;
 var userMisses = 0;
@@ -43,7 +47,7 @@ function UpdateYearsList()
   }
 }
 
-//Checks if the country selected has won multiple world cups, if so set screen to the PickYearScreen, updates the options on that screen, and calls the GetRunnerUp Function. Otherwise it sets the screen to WinScreen.
+//Checks if the country selected has won multiple world cups, if so set screen to the PickYearScreen, updates the options on that screen, and calls the GetRunnerUp Function. Otherwise it sets the screen to GameScreen.
 onEvent("GoButtonOne", "click", function( )
 {
     if(chosenChampionYearsList.length > 1)
@@ -54,7 +58,7 @@ onEvent("GoButtonOne", "click", function( )
     }
     else
     {
-      setScreen("WinScreen");
+      setScreen("GameScreen");
     }
 });
 
@@ -64,7 +68,7 @@ onEvent("YearDropdown", "change", function( )
   GetRunnerUp();
 });
 
-//Gets the chosen year in the dropdown, then uses a for loop to iterate through the list of world cup years, and if the year at the index is the same as the selected year, it sets chosenRunnerUp to that years runner up.
+//Gets the chosen year in the dropdown, then uses a for loop to iterate through the list of world cup years, and if the year at the index is the same as the selected year, it sets chosenRunnerUp to that years runner up, and does the same for the host and real score.
 function GetRunnerUp()
 {
   chosenYear = getProperty("YearDropdown", "value");
@@ -75,6 +79,8 @@ function GetRunnerUp()
     if(comparison == chosenYear)
     {
       chosenRunnerUp = runnerUpList[i];
+      chosenHost = hostList[i];
+      chosenScore = scoresList[i];
       return;
     }
   }
@@ -109,6 +115,7 @@ function ResetApp()
    enemyMisses = 0;
    round = 0;
    shooting = true;
+   setProperty("HintText", "text", (shooting ? "Click anywhere on the goal to shoot" : "Click anywhere on the goal to save"));
 }
 
 
@@ -126,6 +133,7 @@ onEvent("PlayButton", "click", function( )
   setScreen("PlayScreen");
   UpdateGameScreen();
   ResetPenalty();
+  setProperty("DescriptionLabel", "text", "In " + chosenYear + ", " + chosenChampion + " beat " + chosenRunnerUp + " " + chosenScore + " in " + chosenHost);
 });
 
 //If the left button is clicked set the users decision to 0, and call the DoPenalty function
@@ -234,10 +242,14 @@ function DoPenalty()
     if(enemyPick != userPick)
     {
       userScore++;
+      setProperty("ShotResultLabel", "text", "GOOOOOOAL!!!");
+      setProperty("ShotResultLabel", "text-color", "blue");
     }
     else
     {
       userMisses++;
+      setProperty("ShotResultLabel", "text", "SAVED!!!!");
+      setProperty("ShotResultLabel", "text-color", "red");
     }
   }
   else
@@ -245,10 +257,14 @@ function DoPenalty()
     if(enemyPick != userPick)
     {
       enemyScore++;
+      setProperty("ShotResultLabel", "text", "GOOOOOOAL!!!");
+      setProperty("ShotResultLabel", "text-color", "red");
     }
     else
     {
       enemyMisses++;
+      setProperty("ShotResultLabel", "text", "SAVED!!!!");
+      setProperty("ShotResultLabel", "text-color", "blue");
     }
     round++;
   }
@@ -266,8 +282,8 @@ onEvent("NextRoundButton", "click", function( )
   setProperty("NextRoundButton", "hidden", true);
   ResetPenalty();
   CheckForWinners();
-  setProperty("HintText", "text", (shooting ? "Click anywhere on the goal to shoot" : "Click anywhere on the goal to save"));
-  
+  setProperty("HintText", "text", (shooting ? "Click anywhere on the goal to SHOOT" : "Click anywhere on the goal to SAVE"));
+  setProperty("ShotResultLabel", "text", "");
 });
 
 //Sets the goalie and ball to their original positions and scale. Changes the ball and goalie color based on if the player is shooting or not
@@ -283,6 +299,7 @@ function ResetPenalty()
   var blue = rgb(0, 0, 255, 1);
   setProperty("SoccerBall", "icon-color", shooting ? blue : red);
   setProperty("Goalie", "icon-color", shooting ? red : blue);
+  setProperty("HintText", "text-color", shooting ? blue : red);
 }
 
 //Determines if user won or lost. This is done by checking if they are within the first five penalties or not. If they are then the equation team1goals + team2misses can be used to determine if a team has won. If they are not in the first five rounds then it checks if one has missed and the other has scored, and if so the scorer has won.
@@ -325,6 +342,10 @@ function UpdateVictoryScreen()
 {
   setProperty("FinalScoreDisplay1", "text", chosenChampion + ": " + userScore + " | " + chosenRunnerUp + ": " + enemyScore);
 }
+
+
+
+
 
 //Sets the FinalScoreDisplay2 to the users country and their score, then the enemy country and their score
 function UpdateLossScreen()
